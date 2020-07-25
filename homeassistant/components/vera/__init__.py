@@ -5,6 +5,7 @@ import logging
 import pyvera as veraApi
 from requests.exceptions import RequestException
 import voluptuous as vol
+from typing import cast
 
 from homeassistant.const import (
     ATTR_ARMED,
@@ -21,6 +22,30 @@ from homeassistant.util import convert, slugify
 from homeassistant.util.dt import utc_from_timestamp
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def dimmer_switch_on(self) -> None:
+    """Turn the dimmer on."""
+    self.set_switch_state(1)
+
+def dimmer_switch_off(self) -> None:
+    """Turn the dimmer off."""
+    self.set_switch_state(0)
+
+def dimmer_is_switched_on(self, refresh: bool = False) -> bool:
+    """Get switch state.
+
+    Refresh data from Vera if refresh is True, otherwise use local cache.
+    Refresh is only needed if you're not using subscriptions.
+    """
+    if refresh:
+        self.refresh()
+    val = self.get_value("Status")
+    return cast(str, val) == "1"
+
+veraApi.VeraDimmer.switch_on = dimmer_switch_on
+veraApi.VeraDimmer.switch_off = dimmer_switch_off
+#veraApi.VeraDimmer.is_switched_on = dimmer_is_switched_on
 
 DOMAIN = "vera"
 
